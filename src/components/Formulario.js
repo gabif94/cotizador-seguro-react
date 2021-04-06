@@ -1,10 +1,7 @@
 import React, {useState} from 'react';
 import styled from '@emotion/styled';
-import {
-	obtenerDiferenciaAnio,
-	calcularMarca,
-	obtenerPlan,
-} from '../helper';
+import {obtenerDiferenciaAnio, calcularMarca, obtenerPlan} from '../helper';
+import PropTypes from 'prop-types';
 
 const Campo = styled.div`
 	display: flex;
@@ -53,7 +50,7 @@ const Error = styled.div`
 	text-align: center;
 	margin-bottom: 2rem;
 `;
-const Formulario = () => {
+const Formulario = ({setResumen, setCargando}) => {
 	const [datos, setDatos] = useState({
 		marca: '',
 		anio: '',
@@ -77,11 +74,7 @@ const Formulario = () => {
 
 	const cotizarSeguro = e => {
 		e.preventDefault();
-		if (
-			marca.trim() === '' ||
-			anio.trim() === '' ||
-			plan.trim() === ''
-		) {
+		if (marca.trim() === '' || anio.trim() === '' || plan.trim() === '') {
 			setError(true);
 			return;
 		}
@@ -92,12 +85,9 @@ const Formulario = () => {
 
 		//obtener la diferencia de años
 
-		const diferencia = obtenerDiferenciaAnio(
-			anio
-		);
+		const diferencia = obtenerDiferenciaAnio(anio);
 		//por cada año hay que restar el 3%
-		resultado -=
-			(diferencia * 3 * resultado) / 100;
+		resultado -= (diferencia * 3 * resultado) / 100;
 
 		console.log(resultado);
 
@@ -112,53 +102,34 @@ const Formulario = () => {
 		//Completo 50%
 		const incrementoPlan = obtenerPlan(plan);
 
-		resultado = parseFloat(
-			incrementoPlan * resultado
-		).toFixed(2);
+		resultado = parseFloat(incrementoPlan * resultado).toFixed(2);
 
-		console.log(resultado);
-
-		//Total
+		setCargando(true);
+		setTimeout(() => {
+			setCargando(false);
+			setResumen({
+				cotizacion: Number(resultado),
+				datos,
+			});
+		}, 3000);
 	};
 	return (
 		<form onSubmit={cotizarSeguro}>
-			{error ? (
-				<Error>
-					Todos los campos son obligatorios
-				</Error>
-			) : null}
+			{error ? <Error>Todos los campos son obligatorios</Error> : null}
 
 			<Campo>
 				<Label>Marca: </Label>
-				<Select
-					name="marca"
-					value={marca}
-					onChange={obtenerInformacion}
-				>
-					<option value="" key="">
-						Seleccione la marca
-					</option>
-					<option value="Americano" key="">
-						Americano
-					</option>
-					<option value="Europeo" key="">
-						Europeo
-					</option>
-					<option value="Asiatico" key="">
-						Asiatico
-					</option>
+				<Select name="marca" value={marca} onChange={obtenerInformacion}>
+					<option value="">Seleccione la marca</option>
+					<option value="Americano">Americano</option>
+					<option value="Europeo">Europeo</option>
+					<option value="Asiatico">Asiatico</option>
 				</Select>
 			</Campo>
 			<Campo>
 				<Label>Año: </Label>
-				<Select
-					name="anio"
-					anio={anio}
-					onChange={obtenerInformacion}
-				>
-					<option value="">
-						Seleccione el año
-					</option>
+				<Select name="anio" anio={anio} onChange={obtenerInformacion}>
+					<option value="">Seleccione el año</option>
 					<option value="2021">2021</option>
 					<option value="2020">2020</option>
 					<option value="2019">2019</option>
@@ -193,6 +164,11 @@ const Formulario = () => {
 			<Boton type="submit">Cotizar</Boton>
 		</form>
 	);
+};
+
+Formulario.propTypes = {
+	setResumen: PropTypes.func.isRequired,
+	setCargando: PropTypes.func.isRequired,
 };
 
 export default Formulario;
